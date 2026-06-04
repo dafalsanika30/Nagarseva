@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Department Dashboard — NagarSeva</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ---- Department-specific sidebar ---- */
+    .sidebar { background: linear-gradient(180deg, #1e3a5f 0%, #1d4ed8 100%); }
+    .sidebar-avatar-dept { background: #1d4ed8; border: 2px solid rgba(255,255,255,.3); }
+
+    /* Priority indicator dot */
+    .priority-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:6px; }
+    .priority-dot.high   { background:#dc2626; }
+    .priority-dot.medium { background:#d97706; }
+    .priority-dot.low    { background:#2563eb; }
+
+    /* SLA countdown pill */
+    .sla-countdown { font-size:.78rem; font-weight:700; padding:.25rem .7rem; border-radius:50px; white-space:nowrap; }
+    .sla-countdown.breach  { background:#fee2e2; color:#dc2626; }
+    .sla-countdown.warning { background:#fef9c3; color:#d97706; }
+    .sla-countdown.ok      { background:#dcfce7; color:#16a34a; }
+
+    /* Complaint detail card */
+    .detail-card { background:var(--white); border-radius:var(--radius); border:1px solid var(--border); padding:1.5rem; box-shadow:var(--shadow); }
+    .detail-card h6 { font-family:var(--font-head); font-weight:700; margin-bottom:.75rem; font-size:1rem; }
+
+    /* Modal dept color */
+    .modal-header { background:linear-gradient(135deg,#1e3a5f,#1d4ed8); color:#fff; }
+    .modal-header .btn-close { filter:invert(1); }
+
+    /* Status update form step bar */
+    .step-bar { display:flex; gap:0; margin-bottom:1.5rem; }
+    .step-bar-item { flex:1; padding:.5rem .75rem; text-align:center; font-size:.78rem; font-weight:600; background:var(--bg); border:1px solid var(--border); cursor:pointer; transition:all .2s; }
+    .step-bar-item:first-child { border-radius:var(--radius-sm) 0 0 var(--radius-sm); }
+    .step-bar-item:last-child  { border-radius:0 var(--radius-sm) var(--radius-sm) 0; }
+    .step-bar-item.sel { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .step-bar-item.done{ background:var(--success); color:#fff; border-color:var(--success); }
+  </style>
+</head>
+<body>
+
+<button class="sidebar-toggle-btn" id="sidebarToggle"><i class="bi bi-list"></i></button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="dashboard-wrapper">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">🏢 Dept. Portal</div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar sidebar-avatar-dept officer-avatar">
+  OF
+</div>
+      <div>
+        <div class="sidebar-user-name officer-name">
+  Officer
+</div>
+        <div class="sidebar-user-role officer-department">
+  Department
+</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-link active"  data-tab="tab-overview">  <span class="nav-icon">📊</span> Overview</a>
+      <a href="#" class="nav-link"         data-tab="tab-complaints"><span class="nav-icon">📋</span> My Complaints</a>
+      <a href="#" class="nav-link"         data-tab="tab-update">    <span class="nav-icon">✏️</span> Update Status</a>
+      <a href="#" class="nav-link"         data-tab="tab-sla">       <span class="nav-icon">⏱️</span> SLA Monitor</a>
+      <a href="#" class="nav-link"         data-tab="tab-history">   <span class="nav-icon">📂</span> History</a>
+      <a href="#" class="nav-link"         data-tab="tab-profile">   <span class="nav-icon">👤</span> My Profile</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="../index.html" class="sidebar-logout"><i class="bi bi-box-arrow-left me-2"></i>Logout</a>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="dash-main">
+
+    <!-- Topbar -->
+    <div class="dash-topbar">
+      <div class="dash-topbar-title" id="topbarTitle">Overview</div>
+      <div class="topbar-actions gap-3">
+        <div class="notif-bell" data-bs-toggle="tooltip" title="2 SLA alerts">🔔<span class="notif-dot"></span></div>
+        <div class="d-flex align-items-center gap-2">
+          <div style="width:36px;height:36px;background:#1d4ed8;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.85rem">KD</div>
+          <div class="d-none d-md-block">
+            <div class="fw-600 small officer-name">  Officer</div>
+            <div class="text-muted officer-department" style="font-size:.7rem">  Department Officer</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dash-content">
+
+      <!-- ============================================================
+           TAB 1 — OVERVIEW
+           ============================================================ -->
+      <div id="tab-overview" class="tab-pane active">
+
+        <div class="dash-page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div>
+            <h1 class="dash-page-title"  id="overviewDepartmentTitle">
+  Department Dashboard
+
+</h1>
+
+<p class="dash-page-sub"
+   id="overviewDepartmentSubtitle">
+
+  Officer Dashboard
+
+</p>
+          </div>
+          <span class="status-badge badge-active" style="font-size:.85rem;padding:.4rem 1rem">SLA: 96%</span>
+        </div>
+
+        <!-- KPIs -->
+        <!-- KPIs -->
+<div class="row g-3 mb-4">
+
+  <!-- OPEN -->
+  <div class="col-6 col-xl-3">
+    <div class="kpi-card">
+
+      <div class="kpi-icon-wrap"
+           style="background:#fee2e2">
+
+        <i class="bi bi-exclamation-circle-fill"
+           style="color:#dc2626;
+                  font-size:1.4rem"></i>
+
+      </div>
+
+      <div class="kpi-info">
+
+        <div class="kpi-num"
+             id="officerKpiOpen">
+
+          0
+
+        </div>
+
+        <div class="kpi-label">
+
+          Open
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- IN PROGRESS -->
+  <div class="col-6 col-xl-3">
+    <div class="kpi-card">
+
+      <div class="kpi-icon-wrap"
+           style="background:#fef9c3">
+
+        <i class="bi bi-clock-fill"
+           style="color:#d97706;
+                  font-size:1.4rem"></i>
+
+      </div>
+
+      <div class="kpi-info">
+
+        <div class="kpi-num"
+             id="officerKpiInProgress">
+
+          0
+
+        </div>
+
+        <div class="kpi-label">
+
+          In Progress
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RESOLVED -->
+  <div class="col-6 col-xl-3">
+    <div class="kpi-card">
+
+      <div class="kpi-icon-wrap"
+           style="background:#dcfce7">
+
+        <i class="bi bi-check-circle-fill"
+           style="color:#16a34a;
+                  font-size:1.4rem"></i>
+
+      </div>
+
+      <div class="kpi-info">
+
+        <div class="kpi-num"
+             id="officerKpiResolved">
+
+          0
+
+        </div>
+
+        <div class="kpi-label">
+
+          Resolved
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BREACHED -->
+  <div class="col-6 col-xl-3">
+    <div class="kpi-card">
+
+      <div class="kpi-icon-wrap"
+           style="background:#fee2e2">
+
+        <i class="bi bi-alarm-fill"
+           style="color:#dc2626;
+                  font-size:1.4rem"></i>
+
+      </div>
+
+      <div class="kpi-info">
+
+        <div class="kpi-num"
+             id="officerKpiBreached">
+
+          0
+
+        </div>
+
+        <div class="kpi-label">
+
+          SLA Breached
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+        <!-- Row 2: Urgent complaints + Mini chart -->
+        <!-- Row 2: Urgent complaints + Mini chart -->
+<div class="row g-3 mb-4">
+
+  <!-- Urgent / High Priority -->
+  <div class="col-lg-7">
+
+    <div class="table-card">
+
+      <div class="table-card-header">
+
+        <h5>
+          🚨 Urgent & High Priority
+        </h5>
+
+        <button
+          class="btn btn-sm btn-outline-primary"
+          onclick="
+            document
+              .querySelector(
+                '[data-tab=tab-complaints]'
+              )
+              .click()
+          ">
+
+          View All
+
+        </button>
+
+      </div>
+
+      <div class="table-responsive">
+
+        <table class="custom-table">
+
+          <thead>
+
+            <tr>
+
+              <th>ID</th>
+
+              <th>Issue</th>
+
+              <th>Citizen</th>
+
+              <th>Priority</th>
+
+              <th>Status</th>
+
+              <th>SLA</th>
+
+              <th>Action</th>
+
+            </tr>
+
+          </thead>
+
+          <!-- Dynamic rows from JS -->
+          <tbody id="urgentTableBody">
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+
+          <!-- Activity + mini stats -->
+          <div class="col-lg-5">
+  <div class="table-card h-100">
+
+    <div class="table-card-header">
+      <h5>Today's Activity</h5>
+    </div>
+
+    <div
+      class="activity-feed px-3"
+      id="officerActivityFeed">
+
+    </div>
+
+  </div>
+</div>
+        </div>
+
+        <!-- SLA Summary Cards -->
+        <!-- SLA Summary Cards -->
+<div class="row g-3">
+
+  <!-- SLA RATE -->
+  <div class="col-md-4">
+
+    <div class="detail-card">
+
+      <h6>
+        📊 This Month's SLA
+      </h6>
+
+      <div
+        class="d-flex align-items-center gap-3 mt-2">
+
+        <div
+          id="monthlySlaRate"
+          style="
+            font-family:var(--font-head);
+            font-size:2.5rem;
+            font-weight:900;
+            color:#16a34a">
+
+          0%
+
+        </div>
+
+        <div>
+
+          <div class="small text-muted">
+
+            Target: 95%
+
+          </div>
+
+          <div
+            class="small"
+            id="monthlySlaStatus"
+            style="
+              color:#16a34a;
+              font-weight:600">
+
+            —
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="perf-bar-track mt-2">
+
+        <div
+          class="perf-bar-fill"
+          id="monthlySlaBar"
+          style="
+            width:0%;
+            background:#16a34a;
+            height:10px;
+            border-radius:100px">
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- AVG RESOLUTION -->
+  <div class="col-md-4">
+
+    <div class="detail-card">
+
+      <h6>
+        ⏱️ Avg Resolution Time
+      </h6>
+
+      <div
+        id="avgResolutionTime"
+        style="
+          font-family:var(--font-head);
+          font-size:2.5rem;
+          font-weight:900;
+          color:var(--primary)">
+
+        0hrs
+
+      </div>
+
+      <div class="small text-muted mt-1">
+
+        SLA target: 48 hrs
+
+      </div>
+
+      <div
+        class="small"
+        id="resolutionStatus"
+        style="
+          color:#16a34a;
+          font-weight:600">
+
+        —
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- SATISFACTION -->
+  <div class="col-md-4">
+
+    <div class="detail-card">
+
+      <h6>
+        ⭐ Citizen Satisfaction
+      </h6>
+
+      <div
+        id="citizenRating"
+        style="
+          font-family:var(--font-head);
+          font-size:2.5rem;
+          font-weight:900;
+          color:#d97706">
+
+        0/5
+
+      </div>
+
+      <div
+        class="d-flex gap-1 mt-1"
+        id="citizenStars"
+        style="color:#d97706">
+
+      </div>
+
+      <div
+        class="small text-muted mt-1"
+        id="ratingCount">
+
+        No ratings
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div><!-- /tab-overview -->
+
+
+      <!-- ============================================================
+           TAB 2 — MY COMPLAINTS
+           ============================================================ -->
+      <div id="tab-complaints" class="tab-pane">
+
+  <div
+    class="dash-page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+
+    <div>
+
+      <h1 class="dash-page-title">
+
+        My Department Complaints
+
+      </h1>
+
+      <p
+        class="dash-page-sub"
+        id="departmentComplaintCount">
+
+        0 complaints assigned
+
+      </p>
+
+    </div>
+
+    <div class="d-flex gap-2">
+
+      <button
+        class="btn btn-sm btn-outline-secondary">
+
+        <i class="bi bi-download me-1"></i>
+
+        Export
+
+      </button>
+
+    </div>
+
+  </div>
+
+        <!-- Filters -->
+        <div class="d-flex flex-wrap gap-2 mb-3">
+
+  <!-- STATUS -->
+  <select
+    class="form-select form-select-sm"
+    style="width:130px"
+    id="deptFilterStatus">
+
+    <option value="">
+      All Status
+    </option>
+
+    <option value="OPEN">
+      Open
+    </option>
+
+    <option value="IN_PROGRESS">
+      In Progress
+    </option>
+
+    <option value="RESOLVED">
+      Resolved
+    </option>
+
+    <option value="REJECTED">
+      Rejected
+    </option>
+
+  </select>
+
+  <!-- PRIORITY -->
+  <select
+    class="form-select form-select-sm"
+    style="width:130px"
+    id="deptFilterPriority">
+
+    <option value="">
+      All Priority
+    </option>
+
+    <option value="HIGH">
+      High
+    </option>
+
+    <option value="MEDIUM">
+      Medium
+    </option>
+
+    <option value="LOW">
+      Low
+    </option>
+
+  </select>
+
+  <!-- DATE -->
+  <input
+    type="date"
+    class="form-control form-control-sm"
+    style="width:150px"
+    id="deptFilterDate">
+
+  <!-- SEARCH -->
+  <input
+    type="text"
+    class="form-control form-control-sm"
+    style="width:220px"
+    id="deptSearchInput"
+    placeholder="🔍 Search complaint ID">
+
+</div>
+
+        <!-- Quick count tabs -->
+        <ul class="nav nav-tabs mb-3 inner-tabs border-0">
+
+  <li class="nav-item">
+    <a class="nav-link active" href="#">
+
+      All
+      (<span id="allComplaintsCount">0</span>)
+
+    </a>
+  </li>
+
+  <li class="nav-item">
+    <a class="nav-link" href="#">
+
+      Open
+      (<span id="openComplaintsCount">0</span>)
+
+    </a>
+  </li>
+
+  <li class="nav-item">
+    <a class="nav-link" href="#">
+
+      In Progress
+      (<span id="progressComplaintsCount">0</span>)
+
+    </a>
+  </li>
+
+  <li class="nav-item">
+    <a class="nav-link" href="#">
+
+      Resolved
+      (<span id="resolvedComplaintsCount">0</span>)
+
+    </a>
+  </li>
+
+</ul>
+
+<div class="table-card">
+
+  <div class="table-responsive">
+
+    <table class="custom-table">
+
+      <thead>
+
+        <tr>
+
+          <th>ID</th>
+
+          <th>Category</th>
+
+          <th>Citizen</th>
+
+          <th>Location</th>
+
+          <th>Priority</th>
+
+          <th>Status</th>
+
+          <th>Filed</th>
+
+          <th>SLA</th>
+
+          <th>Action</th>
+
+        </tr>
+
+      </thead>
+
+      <!-- Dynamic rows -->
+      <tbody id="deptComplaintsBody">
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+  <!-- Pagination -->
+  <div
+    class="d-flex align-items-center justify-content-between px-3 py-2"
+    style="border-top:1px solid var(--border)">
+
+    <small
+      class="text-muted"
+      id="deptComplaintPagination">
+
+      Showing 0 complaints
+
+    </small>
+
+    <nav>
+
+      <ul
+        class="pagination pagination-sm mb-0"
+        id="deptPagination">
+
+      </ul>
+
+    </nav>
+
+  </div>
+
+</div>
+
+</div><!-- /tab-complaints -->
+
+      <!-- ============================================================
+           TAB 3 — UPDATE STATUS
+           ============================================================ -->
+      <div id="tab-update" class="tab-pane">
+        <div class="dash-page-header">
+          <h1 class="dash-page-title">Update Complaint Status</h1>
+          <p class="dash-page-sub">Change status, add progress notes, and notify the citizen.</p>
+        </div>
+
+        <!-- Search complaint -->
+        <div class="form-card mb-3">
+          <label class="form-label-custom">Search Complaint</label>
+          <div class="d-flex gap-2">
+            <input type="text" class="form-control-custom" id="updateSearchInput" placeholder="Enter Complaint ID e.g. GR-1043" style="max-width:320px">
+            <button class="btn-primary-custom"
+        id="loadComplaintBtn">Load Complaint</button>
+          </div>
+        </div>
+
+        <!-- Update form -->
+        <div class="row g-3" id="updateFormSection">
+          <div class="col-lg-7">
+            <div class="form-card">
+              <h6 style="font-family:var(--font-head);
+                        font-weight:700;
+                        margin-bottom:1rem">
+
+                Update:
+                <span id="updateComplaintIdLabel"
+                      style="color:var(--primary)">
+
+                  —
+
+                </span>
+
+              </h6>
+
+              <!-- Progress Steps -->
+              <div class="step-bar mb-3">
+                <div class="step-bar-item done">Submitted</div>
+                <div class="step-bar-item done">Assigned</div>
+                <div class="step-bar-item sel">In Progress</div>
+                <div class="step-bar-item">Resolved</div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label-custom">New Status <span class="text-danger">*</span></label>
+                <select class="form-control-custom"
+                        id="updateStatus">
+
+                  <option value="IN_PROGRESS">
+                    In Progress
+                  </option>
+
+                  <option value="RESOLVED">
+                    Resolved
+                  </option>
+
+                  <option value="REJECTED">
+                    Rejected
+                  </option>
+
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label-custom">Work Done / Progress Remarks <span class="text-danger">*</span></label>
+                <textarea class="form-control-custom" id="updateRemark" rows="4" placeholder="Describe the action taken, current situation, next steps…"></textarea>
+              </div>
+              <div class="mb-3">
+                <label class="form-label-custom">Expected Resolution Date</label>
+                <input type="date" class="form-control-custom">
+              </div>
+              <div class="mb-4">
+                <label class="form-label-custom">Attach Evidence / Photo</label>
+                <div class="upload-zone">
+                  <div class="upload-icon">📎</div>
+                  <p>Upload work completion photo</p>
+                  <small>JPG, PNG — Max 5 MB</small>
+                </div>
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn-primary-custom" id="updateStatusBtn">Update & Notify Citizen <i class="bi bi-send ms-1"></i></button>
+                <button class="btn btn-outline-secondary" onclick="document.getElementById('updateFormSection').style.display='none'">Cancel</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Complaint summary card -->
+          <div class="col-lg-5">
+            <div class="detail-card mb-3">
+              <h6>Complaint Summary</h6>
+              <div class="mb-2"><small class="text-muted">ID</small><div class="fw-600" id="updateComplaintId">—</div></div>
+              <div class="mb-2"><small class="text-muted">Issue</small><div class="fw-600" id="updateComplaintTitle">—</div></div>
+              <div class="mb-2"><small class="text-muted">Citizen</small><div class="fw-600" id="updateComplaintCitizen">—</div></div>
+              <div class="mb-2"><small class="text-muted">Location</small><div class="fw-600" id="updateComplaintLocation">—</div></div>
+              <div class="mb-2"><small class="text-muted">Filed On</small><div class="fw-600" 
+     id="updateComplaintFiledDate">—</div></div>
+              <div class="mb-2"><small class="text-muted">SLA Deadline</small><div class="fw-600 text-warning"      id="updateComplaintDeadline">  — </div></div>
+              <div><small class="text-muted">Current Status</small><div class="mt-1"      id="updateComplaintStatus">   — </div></div>
+            </div>
+            
+          </div> <!-- col-lg-5 -->
+          </div> <!-- row -->
+        </div>
+      </div><!-- /tab-update -->
+
+
+      <!-- ============================================================
+           TAB 4 — SLA MONITOR
+           ============================================================ -->
+      <div id="tab-sla" class="tab-pane">
+        <div class="dash-page-header">
+          <h1 class="dash-page-title">SLA Monitor</h1>
+          <p class="dash-page-sub" id="slaDepartmentInfo">        Department SLA Monitoring </p>
+        </div>
+
+    <!-- SUMMARY KPI -->
+    <div class="row g-3 mb-4">
+    <!-- SLA RATE -->
+    <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-icon-wrap" style="background:#dcfce7"><i class="bi bi-graph-up-arrow" style="color:#16a34a;font-size:1.3rem"></i></div>    <div class="kpi-info"><div class="kpi-num" id="slaRateValue"           style="color:#16a34a">0%</div><div class="kpi-label">SLA Rate</div>     </div></div></div>
+
+    <!-- BREACHED -->
+    <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-icon-wrap" style="background:#fee2e2"><i class="bi bi-alarm"  style="color:#dc2626;font-size:1.3rem"></i></div><div class="kpi-info">  <div class="kpi-num"  id="slaBreachedCount"  style="color:#dc2626">0</div><div class="kpi-label"> Breached </div></div></div></div>
+
+    <!-- AT RISK -->
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap"
+             style="background:#fef9c3">
+          <i class="bi bi-clock-history"
+             style="color:#d97706;font-size:1.3rem"></i>
+        </div>
+        <div class="kpi-info">
+          <div class="kpi-num"
+               id="slaRiskCount">
+            0
+          </div>
+          <div class="kpi-label">
+            At Risk
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ON TRACK -->
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap"
+             style="background:#dbeafe">
+          <i class="bi bi-check2-all"
+             style="color:#1d4ed8;font-size:1.3rem"></i>
+        </div>
+        <div class="kpi-info">
+          <div class="kpi-num"
+               id="slaTrackCount">
+            0
+          </div>
+          <div class="kpi-label">
+            On Track
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DYNAMIC SLA ITEMS -->
+  <div id="slaMonitorContainer"></div>
+
+</div><!-- /tab-sla -->
+
+
+      <!-- ============================================================
+           TAB 5 — HISTORY
+           ============================================================ -->
+      <div id="tab-history" class="tab-pane">
+        <div class="dash-page-header"><h1 class="dash-page-title">Resolution History</h1><p class="dash-page-sub">312 complaints resolved by Water Supply Department</p></div>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <input type="text" class="form-control form-control-sm" style="width:220px" placeholder="🔍 Search ID or citizen…">
+          <input type="date" class="form-control form-control-sm" style="width:150px">
+          <select class="form-select form-select-sm" style="width:150px"><option>All Priority</option><option>High</option><option>Medium</option><option>Low</option></select>
+        </div>
+        <div class="table-card">
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead><tr><th>ID</th><th>Category</th><th>Citizen</th><th>Location</th><th>Priority</th><th>Resolved On</th><th>Rating</th></tr></thead>
+              <tbody id="historyTableBody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /tab-history -->
+
+
+      <!-- ============================================================
+           TAB 6 — PROFILE
+           ============================================================ -->
+      <div id="tab-profile" class="tab-pane">
+        <div class="dash-page-header"><h1 class="dash-page-title">Officer Profile</h1></div>
+        <div class="row g-3">
+          <div class="col-lg-6">
+            <div class="form-card">
+              <div class="d-flex align-items-center gap-3 mb-4 pb-3" style="border-bottom:1px solid var(--border)">
+                <div style="width:72px;height:72px;background:#1d4ed8;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--font-head);font-size:1.8rem;font-weight:700">KD</div>
+                <div>
+                  <div class="profileOfficerName"
+     style="
+       font-family:var(--font-head);
+       font-size:1.4rem;
+       font-weight:700">
+
+  Officer
+
+</div>
+                  <div class="text-muted small"
+     id="profileOfficerDepartment">
+
+  Department Officer
+
+</div>
+                </div>
+              </div>
+              <div class="row g-3 mb-3">
+                <div class="col-md-6"><label class="form-label-custom">Full Name</label><input type="text" class="form-control-custom" id="profileOfficerName"></div>
+                <div class="col-md-6"><label class="form-label-custom">Employee ID</label><input type="text" class="form-control-custom" value="PMC-WS-042" readonly></div>
+              </div>
+              <div class="mb-3"><label class="form-label-custom">Official Email</label><input type="email" class="form-control-custom" id="profileOfficerEmail"></div>
+              <div class="mb-4"><label class="form-label-custom">Mobile</label><input type="tel" class="form-control-custom" value="+91 94234 11020"></div>
+              <button class="btn-primary-custom" id="profileSaveBtn">Save Changes <i class="bi bi-check-lg ms-1"></i></button>
+            </div>
+          </div>
+          <div class="col-lg-6">
+
+  <div class="form-card h-100">
+
+    <div class="
+      d-flex
+      align-items-center
+      justify-content-between
+      mb-3
+    ">
+
+      <h5
+        class="fw-bold mb-0"
+        style="font-family:var(--font-head)">
+
+        My Performance
+
+      </h5>
+
+      <span class="
+        badge
+        rounded-pill
+        text-bg-success
+      ">
+
+        Active Officer
+
+      </span>
+
+    </div>
+
+    <div class="row g-3">
+
+      <!-- RESOLVED -->
+      <div class="col-6">
+
+        <div class="
+          p-3
+          text-center
+          rounded-4
+        " style="
+          background:#ecfdf5;
+          border:1px solid #bbf7d0;
+        ">
+
+          <div style="font-size:1.8rem">
+            ✅
+          </div>
+
+          <div
+            id="profileResolvedCount"
+            style="
+              font-family:var(--font-head);
+              font-size:2rem;
+              font-weight:900;
+              color:#16a34a">
+
+            0
+
+          </div>
+
+          <div class="small text-muted">
+
+            Resolved
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- SLA -->
+      <div class="col-6">
+
+        <div class="
+          p-3
+          text-center
+          rounded-4
+        " style="
+          background:#eff6ff;
+          border:1px solid #bfdbfe;
+        ">
+
+          <div style="font-size:1.8rem">
+            📈
+          </div>
+
+          <div
+            id="profileSlaRate"
+            style="
+              font-family:var(--font-head);
+              font-size:2rem;
+              font-weight:900;
+              color:#2563eb">
+
+            0%
+
+          </div>
+
+          <div class="small text-muted">
+
+            SLA Rate
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- AVG TIME -->
+      <div class="col-6">
+
+        <div class="
+          p-3
+          text-center
+          rounded-4
+        " style="
+          background:#fff7ed;
+          border:1px solid #fed7aa;
+        ">
+
+          <div style="font-size:1.8rem">
+            ⏱️
+          </div>
+
+          <div
+            id="profileAvgTime"
+            style="
+              font-family:var(--font-head);
+              font-size:2rem;
+              font-weight:900;
+              color:#d97706">
+
+            0hr
+
+          </div>
+
+          <div class="small text-muted">
+
+            Avg Time
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- RATING -->
+      <div class="col-6">
+
+        <div class="
+          p-3
+          text-center
+          rounded-4
+        " style="
+          background:#faf5ff;
+          border:1px solid #e9d5ff;
+        ">
+
+          <div style="font-size:1.8rem">
+            ⭐
+          </div>
+
+          <div
+            id="profileRating"
+            style="
+              font-family:var(--font-head);
+              font-size:2rem;
+              font-weight:900;
+              color:#7c3aed">
+
+            0★
+
+          </div>
+
+          <div class="small text-muted">
+
+            Rating
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- PERFORMANCE BAR -->
+    <div class="mt-4">
+
+      <div class="
+        d-flex
+        justify-content-between
+        small
+        mb-2
+      ">
+
+        <span class="text-muted">
+          Monthly Efficiency
+        </span>
+
+        <span
+          id="profileEfficiencyText"
+          class="fw-bold text-success">
+
+          0%
+
+        </span>
+
+      </div>
+
+      <div class="progress"
+           style="
+             height:10px;
+             border-radius:100px">
+
+        <div
+          id="profileEfficiencyBar"
+          class="progress-bar bg-success"
+          style="width:0%">
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+        </div>
+      </div><!-- /tab-profile -->
+
+    </div><!-- /dash-content -->
+  </div><!-- /dash-main -->
+</div><!-- /dashboard-wrapper -->
+
+
+
+<!-- ===== MODAL: View Complaint Detail ===== -->
+<div class="modal fade" id="viewModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">#GR-1043 — Complaint Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3 mb-3">
+          <div class="col-sm-4"><div class="p-3 rounded-3" style="background:var(--bg)"><div class="small text-muted">Citizen</div><strong id="modalCitizenName">
+  —
+</strong><br><small class="text-muted">9845123456</small></div></div>
+          <div class="col-sm-4"><div class="p-3 rounded-3" style="background:var(--bg)"><div class="small text-muted">Category</div><strong id="modalComplaintTitle">
+  —
+</strong></div></div>
+          <div class="col-sm-4"><div class="p-3 rounded-3" style="background:var(--bg)"><div class="small text-muted">Priority</div><strong id="modalComplaintPriority">
+  —
+</strong></div></div>
+          <div class="col-sm-4"><div class="p-3 rounded-3" style="background:var(--bg)"><div class="small text-muted">Status</div><strong id="modalComplaintStatus">
+  —
+</strong></div></div>
+          <div class="col-sm-4"><div class="p-3 rounded-3" style="background:var(--bg)"><div class="small text-muted">Filed On</div><strong id="modalComplaintFiled">
+  —
+</strong></div></div>
+          <div class="col-sm-4"><div class="p-3 rounded-3" style="background:#fffbeb"><div class="small text-muted">SLA Deadline</div><strong
+  id="modalComplaintDeadline"
+  style="color:#d97706">
+
+  —
+
+</strong></div></div>
+        </div>
+        <div class="mb-3"><strong>Description:</strong><p
+  class="text-muted mt-1"
+  id="modalComplaintDescription">There is a major water leakage from the main pipeline on the ground floor of our society. Water is flowing into the road since yesterday morning. Estimated waste: 500 litres/hr.</p></div>
+        <div><strong>Location:</strong><p
+  class="text-muted mt-1"
+  id="modalComplaintLocation">Near PMC Office, Shivajinagar, Pune — 411005, Ward 14</p></div>
+      <!-- ATTACHMENT -->
+<div
+  id="modalAttachmentSection"
+  class="mt-4"
+  style="display:none;">
+
+  <strong>
+
+    Complaint Attachment
+
+  </strong>
+
+  <div class="mt-3">
+
+    <!-- IMAGE -->
+    <img
+      id="modalAttachmentImage"
+      class="img-fluid rounded-4 border"
+      style="
+        max-height:320px;
+        display:none;
+      ">
+
+    <!-- PDF -->
+    <a
+      id="modalAttachmentPdf"
+      target="_blank"
+      class="btn btn-outline-primary"
+      style="display:none;">
+
+      <i class="bi bi-file-earmark-pdf me-1"></i>
+
+      View PDF
+
+    </a>
+
+  </div>
+</div>
+</div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <!-- <button class="btn" style="background:var(--primary);color:#fff" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="prefillUpdate('#GR-1043')">Update Status</button> -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container-custom" id="toastContainer"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+// function prefillUpdate(id) {
+//   const el = document.getElementById('modalComplaintId');
+//   if (el) el.textContent = id;
+//   const lbl = document.getElementById('updateComplaintIdLabel');
+//   if (lbl) lbl.textContent = id;
+// }
+
+// function loadComplaint() {
+//   const val = document.getElementById('updateSearchInput').value.trim();
+//   if (!val) { showToast('Please enter a Complaint ID.', 'warning'); return; }
+//   const lbl = document.getElementById('updateComplaintIdLabel');
+//   if (lbl) lbl.textContent = '#' + val.toUpperCase().replace('#','');
+//   showToast('Complaint ' + val.toUpperCase() + ' loaded.', 'success');
+// }
+
+// function submitQuickUpdate() {
+//   showToast('Status updated! Citizen has been notified via email.', 'success');
+//   const modal = bootstrap.Modal.getInstance(document.getElementById('updateModal'));
+//   if (modal) modal.hide();
+// }
+</script>
+</body>
+</html>

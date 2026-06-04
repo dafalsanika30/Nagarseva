@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register — NagarSeva</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body style="background:var(--bg)">
+
+<div class="auth-wrapper">
+  <!-- LEFT PANEL -->
+  <div class="col-lg-5 d-none d-lg-flex">
+    <div class="auth-left-panel w-100" style="background:linear-gradient(145deg,#1a3a2a,#0d2419)">
+      <div>
+        <div class="auth-left-logo">🏛️</div>
+        <div class="auth-left-brand">NagarSeva</div>
+        <div class="auth-left-sub">Pune Municipal Corporation</div>
+        <h2 class="auth-left-tagline">Join 50,000+<br>Citizens.</h2>
+        <p class="auth-left-desc">Register once. Report any civic issue anytime. Your complaint reaches the right authority instantly — with full tracking and accountability.</p>
+        <ul class="auth-feature-list">
+          <li>🆓 Completely free to use</li>
+          <li>⚡ Instant complaint submission</li>
+          <li>📱 Works on any device</li>
+          <li>🔐 Your data is secure & private</li>
+          <li>🔔 Real-time status notifications</li>
+        </ul>
+      </div>
+      <div class="mt-auto pt-4">
+        <p style="color:rgba(255,255,255,0.4);font-size:0.78rem">© 2026 Pune Municipal Corporation. All Rights Reserved.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="col-lg-7 col-12">
+    <div class="auth-right-panel w-100 h-100">
+      <div class="auth-card-inner" style="max-width:520px">
+        <a href="../index.html" class="d-flex align-items-center gap-2 mb-4 d-lg-none text-decoration-none">
+          <span style="font-size:1.5rem">🏛️</span>
+          <span style="font-family:var(--font-head);font-weight:700;color:var(--primary);font-size:1.3rem">NagarSeva</span>
+        </a>
+        <h2 class="auth-title">Create Account</h2>
+        <p class="auth-subtitle">Register as a citizen of Pune — it's free</p>
+
+        <form id="registerForm" novalidate>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label-custom" for="regName">Full Name <span class="text-danger">*</span></label>
+              <input type="text" id="regName" class="form-control-custom" placeholder="Rahul Sharma" required />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label-custom" for="regMobile">Mobile Number <span class="text-danger">*</span></label>
+              <input type="tel" id="regMobile" class="form-control-custom" placeholder="9876543210" required />
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label-custom" for="regEmail">Email Address <span class="text-danger">*</span></label>
+            <input type="email" id="regEmail" class="form-control-custom" placeholder="your@email.com" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label-custom" for="regAddress">Area / Address <span class="text-danger">*</span></label>
+            <input type="text" id="regAddress" class="form-control-custom" placeholder="Ward No. / Area / Locality, Pune" required />
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label-custom" for="regPassword">Password <span class="text-danger">*</span></label>
+              <input type="password" id="regPassword" class="form-control-custom" placeholder="Min 8 characters" required />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label-custom" for="regConfirm">Confirm Password <span class="text-danger">*</span></label>
+              <input type="password" id="regConfirm" class="form-control-custom" placeholder="Re-enter password" required />
+            </div>
+          </div>
+          <div class="mb-3">
+            <!-- <label class="form-label-custom">Upload Aadhaar / Proof of Address</label>
+            <div class="upload-zone">
+              <div class="upload-icon">📎</div>
+              <p>Click to upload or drag and drop</p>
+              <small>JPG, PNG, PDF — Max 5 MB</small>
+            </div> -->
+          </div>
+          <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" id="termsCheck" required>
+            <label class="form-check-label small" for="termsCheck">
+              I agree to the <a href="#" class="text-success">Terms & Conditions</a> and <a href="#" class="text-success">Privacy Policy</a> of Pune Municipal Corporation.
+            </label>
+          </div>
+          <button type="submit" class="btn-primary-custom w-100 justify-content-center" style="border-radius:var(--radius-sm)">
+            Create Account <i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        </form>
+
+        <p class="auth-switch mt-3">Already have an account? <a href="login.html">Sign in here</a></p>
+        <p class="text-center mt-2"><a href="../index.html" class="text-muted small"><i class="bi bi-arrow-left me-1"></i>Back to Home</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container-custom" id="toastContainer"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — NagarSeva</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ---- Admin-specific overrides ---- */
+    .sidebar { background: linear-gradient(180deg, #1e1b4b 0%, #3730a3 100%); }
+    .sidebar-avatar-admin { background: #dc2626; }
+
+    /* Mini chart bars */
+    .mini-chart { display:flex; align-items:flex-end; gap:4px; height:40px; }
+    .mini-bar   { flex:1; border-radius:3px 3px 0 0; background:rgba(255,255,255,0.25); transition:height .6s; }
+
+    /* Alert row */
+    .alert-row { background:#fff5f5; border-left:4px solid #dc2626; border-radius:0 var(--radius-sm) var(--radius-sm) 0; padding:.75rem 1rem; margin-bottom:.5rem; display:flex; align-items:center; gap:.75rem; font-size:.88rem; }
+    .alert-row.warn { background:#fffbeb; border-color:var(--accent); }
+
+    /* Dept performance bar */
+    .perf-bar-track { flex:1; background:#f3f4f6; border-radius:100px; height:8px; overflow:hidden; }
+    .perf-bar-fill  { height:100%; border-radius:100px; }
+
+    /* Report filter bar */
+    .report-filter { background:var(--white); border-radius:var(--radius); padding:1rem 1.5rem; border:1px solid var(--border); margin-bottom:1.5rem; }
+
+    /* Modal tweaks */
+    .modal-header { background:linear-gradient(135deg,#1e1b4b,#3730a3); color:#fff; }
+    .modal-header .btn-close { filter:invert(1); }
+
+    /* Tabs inside dashboard content */
+    .inner-tabs .nav-link { color:var(--muted); font-weight:600; border:none; border-bottom:2px solid transparent; border-radius:0; padding:.6rem 1.25rem; }
+    .inner-tabs .nav-link.active { color:var(--primary); border-bottom-color:var(--primary); background:none; }
+  </style>
+</head>
+<body>
+
+<button class="sidebar-toggle-btn" id="sidebarToggle"><i class="bi bi-list"></i></button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="dashboard-wrapper">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">⚙️ NagarSeva Admin</div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar sidebar-avatar-admin">AD</div>
+      <div>
+        <div class="sidebar-user-name">Super Admin</div>
+        <div class="sidebar-user-role">Administrator</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-link active"      data-tab="tab-overview">   <span class="nav-icon">📊</span> Dashboard</a>
+      <a href="#" class="nav-link"             data-tab="tab-complaints"> <span class="nav-icon">📋</span> All Complaints</a>
+      <a href="#" class="nav-link"             data-tab="tab-departments"><span class="nav-icon">🏢</span> Departments</a>
+      <a href="#" class="nav-link"             data-tab="tab-citizens">   <span class="nav-icon">👥</span> Citizens</a>
+      <a href="#" class="nav-link"             data-tab="tab-sla">        <span class="nav-icon">⏱️</span> SLA Policies</a>
+      <a href="#" class="nav-link"             data-tab="tab-reports">    <span class="nav-icon">📈</span> Reports</a>
+      <a href="#" class="nav-link"             data-tab="tab-settings">   <span class="nav-icon">🔧</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="../index.html" class="sidebar-logout"><i class="bi bi-box-arrow-left me-2"></i>Logout</a>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="dash-main">
+
+    <!-- Topbar -->
+    <div class="dash-topbar">
+      <div class="dash-topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-actions gap-3">
+        <!-- Search -->
+        <div class="input-group input-group-sm d-none d-md-flex" style="width:220px">
+          <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" class="form-control border-start-0 ps-0" placeholder="Search complaints…">
+        </div>
+        <!-- Alerts bell -->
+        <div class="notif-bell" data-bs-toggle="tooltip" title="5 alerts">🔔<span class="notif-dot"></span></div>
+        <!-- Avatar -->
+        <div class="d-flex align-items-center gap-2">
+          <div style="width:36px;height:36px;background:#dc2626;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.85rem">AD</div>
+          <span class="d-none d-md-inline fw-600 small">Super Admin</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="dash-content">
+
+      <!-- ============================================================
+           TAB 1 — OVERVIEW DASHBOARD
+           ============================================================ -->
+      <div id="tab-overview" class="tab-pane active">
+
+        <!-- Page header -->
+        <div class="dash-page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div>
+            <h1 class="dash-page-title">Admin Dashboard</h1>
+            <p class="dash-page-sub">System-wide overview — April 2026</p>
+          </div>
+          <div class="d-flex gap-2">
+            <select class="form-select form-select-sm" style="width:130px">
+              <option>This Month</option><option>Last Month</option><option>This Year</option>
+            </select>
+            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-download me-1"></i>Export</button>
+          </div>
+        </div>
+
+        <!-- KPI Row -->
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-xl-3">
+            <div class="kpi-card">
+              <div class="kpi-icon-wrap" style="background:#dbeafe"><i class="bi bi-clipboard-data-fill" style="color:#1d4ed8;font-size:1.4rem"></i></div>
+              <div class="kpi-info"><div class="kpi-num" id="kpiTotal">—</div><div class="kpi-label">Total Complaints</div></div>
+            </div>
+          </div>
+          <div class="col-6 col-xl-3">
+            <div class="kpi-card">
+              <div class="kpi-icon-wrap" style="background:#fee2e2"><i class="bi bi-exclamation-circle-fill" style="color:#dc2626;font-size:1.4rem"></i></div>
+              <div class="kpi-info"><div class="kpi-num" id="kpiOpen">—</div><div class="kpi-label">Open</div></div>
+            </div>
+          </div>
+          <div class="col-6 col-xl-3">
+            <div class="kpi-card">
+              <div class="kpi-icon-wrap" style="background:#dcfce7"><i class="bi bi-check-circle-fill" style="color:#16a34a;font-size:1.4rem"></i></div>
+              <div class="kpi-info"><div class="kpi-num" id="kpiResolved">—</div><div class="kpi-label">Resolved</div></div>
+            </div>
+          </div>
+          <div class="col-6 col-xl-3">
+            <div class="kpi-card">
+              <div class="kpi-icon-wrap" style="background:#fef3c7"><i class="bi bi-alarm-fill" style="color:#d97706;font-size:1.4rem"></i></div>
+              <div class="kpi-info"><div class="kpi-num" id="kpiBreached">—</div><div class="kpi-label">SLA Breached</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Dept performance + Activity feed -->
+        <div class="row g-3 mb-4">
+
+          <!-- Dept Performance -->
+          <div class="col-lg-7">
+            <div class="table-card h-100">
+              <div class="table-card-header">
+                <h5>Department Performance</h5>
+                <span class="status-badge badge-active">Live</span>
+              </div>
+              <div class="p-3" id="deptPerfBars">
+                <!-- Loaded by JS from API -->
+                <div class="text-center text-muted py-3">
+                  <div class="spinner-border spinner-border-sm me-2"></div>Loading…
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity Feed -->
+          <div class="col-lg-5">
+            <div class="table-card h-100">
+              <div class="table-card-header"><h5>Live Activity Feed</h5></div>
+              <div class="activity-feed px-3" id="activityFeed">
+                <div class="text-center text-muted py-3">
+                  <div class="spinner-border spinner-border-sm me-2"></div>Loading…
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 3: SLA Alerts + Chart -->
+        <div class="row g-3">
+          <div class="col-lg-5">
+            <div class="table-card">
+              <div class="table-card-header"><h5>🚨 SLA Breach Alerts</h5></div>
+              <div class="p-3" id="slaAlertsContainer">
+                <div class="text-center text-muted py-3">
+                  <div class="spinner-border spinner-border-sm me-2"></div>Loading…
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Simple CSS Chart -->
+          <div class="col-lg-7">
+            <div class="chart-container">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <h5 class="m-0" style="font-family:var(--font-head);font-weight:700">Complaints by Department</h5>
+                <small class="text-muted">April 2026</small>
+              </div>
+              <div class="chart-bars-wrap" id="deptChartBars">
+                <!-- Loaded dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /tab-overview -->
+
+
+      <!-- ============================================================
+           TAB 2 — ALL COMPLAINTS
+           ============================================================ -->
+      <div id="tab-complaints" class="tab-pane">
+        <div class="dash-page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div><h1 class="dash-page-title">All Complaints</h1><p class="dash-page-sub">1,284 total complaints in system</p></div>
+          <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-download me-1"></i>Export CSV</button>
+        </div>
+
+        <!-- Filters -->
+        <div class="report-filter d-flex flex-wrap gap-2 align-items-center">
+          <select class="form-select form-select-sm" style="width:160px" id="filterDept">
+            <option value="">All Departments</option>
+          </select>
+          <select class="form-select form-select-sm" style="width:140px" id="filterStatus">
+            <option value="">All Status</option>
+            <option value="OPEN">Open</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="RESOLVED">Resolved</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
+          <select class="form-select form-select-sm" style="width:130px" id="filterPriority">
+            <option value="">All Priority</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+          <input
+            type="date"
+            class="form-control form-control-sm"
+            style="width:150px"
+            id="filterDate"
+          />
+
+          <input
+            type="text"
+            class="form-control form-control-sm"
+            style="width:180px"
+            placeholder="🔍 Search ID / name…"
+            id="filterSearch"
+          />
+          <button class="btn btn-sm btn-primary-custom ms-auto" id="applyFiltersBtn">Apply Filters</button>
+        </div>
+
+        <div class="table-card">
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" class="form-check-input"></th>
+                  <th>ID</th><th>Citizen</th><th>Category</th>
+                  <th>Department</th><th>Priority</th><th>Status</th>
+                  <th>Filed On</th><th>SLA</th><th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="complaintsTableBody">
+                <tr><td colspan="10" class="text-center text-muted py-4">
+                  <div class="spinner-border spinner-border-sm me-2"></div>Loading complaints…
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="d-flex align-items-center justify-content-between px-3 py-2"
+               style="border-top:1px solid var(--border)">
+            <small class="text-muted" id="complaintsTotalCount">Loading…</small>
+            <div id="complaintsPagination"></div>
+          </div>
+        </div>
+      </div><!-- /tab-complaints -->
+
+
+      <!-- ============================================================
+           TAB 3 — DEPARTMENTS
+           ============================================================ -->
+      <div id="tab-departments" class="tab-pane">
+        <div class="dash-page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div><h1 class="dash-page-title">Manage Departments</h1><p class="dash-page-sub">8 active departments</p></div>
+          <button class="btn-primary-custom btn-sm" data-bs-toggle="modal" data-bs-target="#addDeptModal">
+            <i class="bi bi-plus-lg me-1"></i> Add Department
+          </button>
+        </div>
+
+        <div class="row g-3" id="deptCardsContainer">
+          <div class="col-12 text-center text-muted py-4">
+            <div class="spinner-border spinner-border-sm me-2"></div>Loading departments…
+          </div>
+        </div>
+      </div><!-- /tab-departments -->
+
+
+      <!-- ============================================================
+           TAB 4 — CITIZENS
+           ============================================================ -->
+      <div id="tab-citizens" class="tab-pane">
+        <div class="dash-page-header">
+          <h1 class="dash-page-title">Registered Citizens</h1>
+          <p class="dash-page-sub" id="citizensTotalCount">Loading…</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <input type="text" id="citizenSearchInput" class="form-control form-control-sm"
+                 style="width:250px" placeholder="🔍 Search by name or email…">
+          <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-download me-1"></i>Export</button>
+        </div>
+        <div class="table-card">
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Mobile</th><th>Address</th><th>Complaints</th><th>Joined</th><th>Status</th></tr></thead>
+              <tbody id="citizensTableBody">
+                <tr><td colspan="8" class="text-center text-muted py-4">
+                  <div class="spinner-border spinner-border-sm me-2"></div>Loading citizens…
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="d-flex align-items-center justify-content-between px-3 py-2"
+               style="border-top:1px solid var(--border)">
+            <small class="text-muted" id="citizensTotalCount2"></small>
+            <div id="citizensPagination"></div>
+          </div>
+        </div>
+      </div><!-- /tab-citizens -->
+
+
+      <!-- ============================================================
+           TAB 5 — SLA POLICIES
+           ============================================================ -->
+      <div id="tab-sla" class="tab-pane">
+        <div class="dash-page-header">
+          <h1 class="dash-page-title">SLA Policies</h1>
+          <p class="dash-page-sub">Set resolution deadlines for each department and priority level.</p>
+        </div>
+        <div class="table-card mb-4">
+          <div class="table-card-header"><h5>Department SLA Configuration</h5></div>
+          <div class="p-3" id="slaPolicyList">
+            <div class="text-center text-muted py-4">
+              <div class="spinner-border spinner-border-sm me-2"></div>Loading SLA policies…
+            </div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-card-header"><h5>Current SLA Breaches</h5><span class="status-badge badge-high" id="breachCount">Loading…</span></div>
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead><tr><th>ID</th><th>Department</th><th>Citizen</th><th>Deadline</th><th>Overdue By</th><th>Priority</th><th>Action</th></tr></thead>
+              <tbody id="slaBreachesTableBody">
+                <tr><td colspan="7" class="text-center text-muted py-3">
+                  <div class="spinner-border spinner-border-sm me-2"></div>Loading…
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /tab-sla -->
+
+
+      <!-- ============================================================
+           TAB 6 — REPORTS
+           ============================================================ -->
+      <div id="tab-reports" class="tab-pane">
+        <div class="dash-page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div><h1 class="dash-page-title">Reports & Analytics</h1><p class="dash-page-sub">System performance metrics</p></div>
+          <div class="d-flex gap-2">
+            <select class="form-select form-select-sm" style="width:130px"><option>April 2026</option><option>March 2026</option><option>Q1 2026</option></select>
+            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-download me-1"></i>PDF Report</button>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+
+  <!-- SLA -->
+  <div class="col-6 col-lg-3">
+
+    <div class="kpi-card">
+
+      <div class="kpi-icon-wrap"
+           style="background:#dcfce7">
+
+        <i class="bi bi-graph-up-arrow"
+           style="color:#16a34a;font-size:1.3rem"></i>
+
+      </div>
+
+      <div class="kpi-info">
+
+        <div class="kpi-num"
+             id="analyticsSla">
+
+          0%
+
+        </div>
+
+        <div class="kpi-label">
+          SLA Compliance
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- AVG -->
+  <div class="col-6 col-lg-3">
+
+    <div class="kpi-card">
+
+      <div class="kpi-icon-wrap"
+           style="background:#dbeafe">
+
+        <i class="bi bi-clock-history"
+           style="color:#1d4ed8;font-size:1.3rem"></i>
+
+      </div>
+
+      <div class="kpi-info">
+
+        <div class="kpi-num"
+             id="analyticsAvgResolution">
+
+          0hr
+
+        </div>
+
+        <div class="kpi-label">
+          Avg Resolution
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- RATING -->
+  <div class="col-6 col-lg-3">
+
+    <div class="kpi-card">
+
+      <div class="kpi-icon-wrap"
+           style="background:#fef9c3">
+
+        <i class="bi bi-star-fill"
+           style="color:#d97706;font-size:1.3rem"></i>
+
+      </div>
+
+      <div class="kpi-info">
+
+        <div class="kpi-num"
+             id="analyticsRating">
+
+          0★
+
+        </div>
+
+        <div class="kpi-label">
+          Citizen Rating
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- MOM -->
+  <div class="col-6 col-lg-3">
+
+    <div class="kpi-card">
+
+      <div class="kpi-icon-wrap"
+           style="background:#f3e8ff">
+
+        <i class="bi bi-arrow-up-right"
+           style="color:#7c3aed;font-size:1.3rem"></i>
+
+      </div>
+
+      <div class="kpi-info">
+
+        <div class="kpi-num"
+             id="analyticsEfficiency">
+
+          0%
+
+        </div>
+
+        <div class="kpi-label">
+          Efficiency MoM
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+        <div class="row g-3">
+          <!-- Dept summary table -->
+          <div class="col-lg-6">
+            <div class="table-card">
+              <div class="table-card-header"><h5>Department Summary</h5></div>
+              <div class="table-responsive">
+                <table class="custom-table">
+                  <thead><tr><th>Department</th><th>Total</th><th>Resolved</th><th>Pending</th><th>SLA%</th></tr></thead>
+                  <tbody id="reportDeptTableBody">
+                    <tr><td colspan="5" class="text-center text-muted py-3">
+                      <div class="spinner-border spinner-border-sm me-2"></div>Loading…
+                    </td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="chart-container h-100">
+              <h5 style="font-family:var(--font-head);font-weight:700;margin-bottom:1rem">Monthly Complaint Trend</h5>
+              <div class="chart-bars-wrap" id="trendChartBars">
+                <!-- Loaded dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /tab-reports -->
+
+
+      <!-- ============================================================
+           TAB 7 — SETTINGS
+           ============================================================ -->
+      <div id="tab-settings" class="tab-pane">
+
+  <div class="dash-page-header">
+    <h1 class="dash-page-title">Admin Settings</h1>
+    <p class="dash-page-sub">
+      Manage notifications, security and administrator preferences.
+    </p>
+  </div>
+
+  <div class="row g-3">
+
+    <!-- LEFT CARD -->
+    <div class="col-lg-6">
+
+      <div class="form-card">
+
+        <h5 class="fw-bold mb-4"
+            style="font-family:var(--font-head)">
+
+          Notification Preferences
+
+        </h5>
+
+        <!-- EMAIL -->
+        <div class="mb-3 d-flex justify-content-between align-items-center p-3 rounded-3"
+             style="background:var(--bg)">
+
+          <div>
+
+            <strong>Email Notifications</strong>
+
+            <div class="small text-muted">
+              Receive email alerts for complaint updates
+            </div>
+
+          </div>
+
+          <div class="form-check form-switch mb-0">
+
+            <input
+              class="form-check-input"
+              type="checkbox"
+              checked
+              style="width:2.7rem;height:1.4rem"
+              id="emailNotifyToggle">
+
+          </div>
+
+        </div>
+
+        <!-- SMS -->
+        <div class="mb-3 d-flex justify-content-between align-items-center p-3 rounded-3"
+             style="background:var(--bg)">
+
+          <div>
+
+            <strong>SMS Notifications</strong>
+
+            <div class="small text-muted">
+              Send SMS alerts to citizens
+            </div>
+
+          </div>
+
+          <div class="form-check form-switch mb-0">
+
+            <input
+              class="form-check-input"
+              type="checkbox"
+              checked
+              style="width:2.7rem;height:1.4rem"
+              id="smsNotifyToggle">
+
+          </div>
+
+        </div>
+
+        <!-- AUTO ASSIGN -->
+        <div class="mb-3 d-flex justify-content-between align-items-center p-3 rounded-3"
+             style="background:var(--bg)">
+
+          <div>
+
+            <strong>Auto Assign Complaints</strong>
+
+            <div class="small text-muted">
+              Automatically route complaints to departments
+            </div>
+
+          </div>
+
+          <div class="form-check form-switch mb-0">
+
+            <input
+              class="form-check-input"
+              type="checkbox"
+              checked
+              style="width:2.7rem;height:1.4rem"
+              id="autoAssignToggle">
+
+          </div>
+
+        </div>
+
+        <!-- SESSION -->
+        <div class="mb-4 d-flex justify-content-between align-items-center p-3 rounded-3"
+             style="background:var(--bg)">
+
+          <div>
+
+            <strong>Remember Admin Session</strong>
+
+            <div class="small text-muted">
+              Keep admin logged in securely
+            </div>
+
+          </div>
+
+          <div class="form-check form-switch mb-0">
+
+            <input
+              class="form-check-input"
+              type="checkbox"
+              checked
+              style="width:2.7rem;height:1.4rem"
+              id="rememberSessionToggle">
+
+          </div>
+
+        </div>
+
+        <button
+          class="btn-primary-custom"
+          onclick="showToast('Settings updated successfully!','success')">
+
+          Save Preferences
+
+          <i class="bi bi-check-lg ms-1"></i>
+
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- RIGHT CARD -->
+    <div class="col-lg-6">
+
+      <div class="form-card">
+
+        <h5 class="fw-bold mb-4"
+            style="font-family:var(--font-head)">
+
+          Security Settings
+
+        </h5>
+
+        <!-- CURRENT -->
+        <div class="mb-3">
+
+          <label class="form-label-custom">
+            Current Password
+          </label>
+
+          <input
+            type="password"
+            class="form-control-custom"
+            placeholder="••••••••"
+            id="currentPassword">
+
+        </div>
+
+        <!-- NEW -->
+        <div class="mb-3">
+
+          <label class="form-label-custom">
+            New Password
+          </label>
+
+          <input
+            type="password"
+            class="form-control-custom"
+            placeholder="Minimum 8 characters"
+            id="newPassword">
+
+        </div>
+
+        <!-- CONFIRM -->
+        <div class="mb-4">
+
+          <label class="form-label-custom">
+            Confirm New Password
+          </label>
+
+          <input
+            type="password"
+            class="form-control-custom"
+            placeholder="Re-enter new password"
+            id="confirmPassword">
+
+        </div>
+
+        <!-- BUTTONS -->
+        <div class="d-flex gap-2 flex-wrap">
+
+          <button
+            class="btn btn-outline-danger"
+            onclick="showToast('Password updated successfully!','success')">
+
+            Update Password
+
+          </button>
+
+          <button
+            class="btn btn-outline-secondary"
+            onclick="showToast('All active sessions cleared','success')">
+
+            Logout All Devices
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+    </div><!-- /dash-content -->
+  </div><!-- /dash-main -->
+</div><!-- /dashboard-wrapper -->
+
+
+<!-- ===== MODAL: View Complaint ===== -->
+<div class="modal fade" id="complaintModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold"><span id="modalComplaintId"></span> — Complaint Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3 mb-3">
+          <div class="col-sm-4"><div class="p-3 rounded-3" style="background:var(--bg)"><div class="small text-muted">Citizen</div><strong id="modalCitizenName"></strong></div></div>
+          <div class="col-sm-4"><div class="p-3 rounded-3" style="background:var(--bg)"><div class="small text-muted">Department</div><strong id="modalDepartment"></strong></div></div>
+          <div class="col-sm-4"><div class="p-3 rounded-3" style="background:var(--bg)"><div class="small text-muted">Priority</div><strong id="modalPriority"></strong></div></div>
+          <div class="col-sm-4"><div class="p-3 rounded-3" style="background:var(--bg)"><div class="small text-muted">Status</div><strong id="modalStatus"></strong></div></div>
+          <div class="col-sm-4"><div class="p-3 rounded-3" style="background:var(--bg)"><div class="small text-muted">Filed On</div><strong id="modalCreatedAt"></strong></div></div>
+          <div class="col-sm-4"><div class="p-3 rounded-3" style="background:#fff5f5"><div class="small text-muted">SLA</div><strong id="modalSla"></strong></div></div>
+        </div>
+        <div class="mb-3"><strong>Description:</strong><p class="text-muted mt-1"
+   id="modalDescription"></p></div>
+        <div class="mb-3"><strong>Location:</strong><p class="text-muted mt-1"
+   id="modalLocation"></p></div>
+        <div>
+
+  <strong>Reassign Department:</strong>
+
+  <div class="d-flex gap-2 mt-2">
+
+    <select
+      id="reassignDepartment"
+      class="form-select form-select-sm"
+      style="width:200px"
+    >
+    </select>
+
+    <button
+      id="reassignBtn"
+      class="btn btn-sm btn-outline-primary"
+    >
+      Reassign
+    </button>
+
+  </div>
+
+</div>
+      </div>
+      <div class="modal-footer">
+
+        <button
+          id="rejectBtn"
+          class="btn btn-outline-danger btn-sm"
+        >
+          Reject
+        </button>
+
+        <button
+          id="escalateBtn"
+          class="btn btn-sm"
+          style="background:var(--primary);color:#fff"
+        >
+          Escalate
+        </button>
+
+        <button
+          class="btn btn-secondary btn-sm"
+          data-bs-dismiss="modal"
+        >
+          Close
+        </button>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Add Department ===== -->
+<div class="modal fade" id="addDeptModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Add New Department</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addDeptForm">
+          <div class="mb-3"><label class="form-label-custom">Department Name <span class="text-danger">*</span></label><input type="text" id="newDeptName" class="form-control-custom" placeholder="e.g. Fire Services" required></div>
+          <div class="mb-3"><label class="form-label-custom">Officer Name <span class="text-danger">*</span></label><input type="text" id="newDeptOfficer" class="form-control-custom" placeholder="Full name" required></div>
+          <div class="mb-3"><label class="form-label-custom">Contact Email <span class="text-danger">*</span></label><input type="email" id="newDeptEmail" class="form-control-custom" placeholder="dept@pmc.gov.in" required></div>
+          <div class="mb-3"><label class="form-label-custom">Default SLA (hours)</label><input type="number" class="form-control-custom" value="48"></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn" id="saveDeptBtn" style="background:var(--primary);color:#fff">Save Department</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Edit Department ===== -->
+<div class="modal fade" id="editDeptModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Edit Department</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3"><label class="form-label-custom">Department Name</label><input type="text" id="editDeptName" class="form-control-custom" value="Water Supply"></div>
+        <div class="mb-3"><label class="form-label-custom">Officer Name</label><input type="text" id="editDeptOfficer" class="form-control-custom" value="K. Deshmukh"></div>
+        <div class="mb-3"><label class="form-label-custom">Contact Email</label><input type="email" id="editDeptEmail" class="form-control-custom" value="water@pmc.gov.in"></div>
+        <div class="mb-3"><label class="form-label-custom">Status</label><select id="editDeptStatus" class="form-control-custom"><option>Active</option><option>Inactive</option></select></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn" id="updateDeptBtn" style="background:var(--primary);color:#fff" >Update</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container-custom" id="toastContainer"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+
+
+</body>
+</html>

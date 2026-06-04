@@ -1,0 +1,32 @@
+# Java build files
+target/
+*.class
+*.jar
+*.war
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+
+# Temporary files
+*.tmp
+
+# Upload files (user complaint attachments)
+uploads/
+
+# Local database files
+*.db
+
+# Secrets (ONLY if password inside)
+src/main/resources/application.properties
